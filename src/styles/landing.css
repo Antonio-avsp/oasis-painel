@@ -1,0 +1,251 @@
+/* =================== HERO =================== */
+.hero {
+  position: relative;
+  min-height: min(100svh, 980px);
+  padding: calc(var(--nav-h) + 48px) 0 0;
+  color: #fff;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 600px at 78% 18%, rgba(229, 150, 176, 0.32), transparent 60%),
+    radial-gradient(700px 500px at 5% 90%, rgba(163, 50, 90, 0.5), transparent 60%),
+    linear-gradient(165deg, #5a1732 0%, #3d0f22 45%, #1f0610 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse at 60% 30%, #000 20%, transparent 75%);
+  pointer-events: none;
+}
+
+.hero-rows {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46%;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  flex: 1;
+}
+
+.hero-copy {
+  animation: fadeUp 0.9s var(--ease) both;
+}
+
+.hero .eyebrow {
+  color: var(--rose-300);
+}
+
+.hero h1 {
+  color: #fff;
+  font-size: clamp(40px, 5.2vw, 70px);
+  line-height: 1.02;
+  margin-top: 20px;
+}
+
+.hero h1 em {
+  font-style: italic;
+  font-weight: 400;
+  background: linear-gradient(90deg, #f7d6e1, #e596b0 60%, #f0b9cb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-sub {
+  margin-top: 24px;
+  max-width: 560px;
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+
+/* Cartão flutuante sobre a ilustração do hero */
+
+.float-card {
+  position: absolute;
+  z-index: 3;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink-800);
+  box-shadow: 0 24px 50px rgba(20, 0, 8, 0.35);
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Hero em telas menores */
+
+@media (max-width: 1000px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 72px;
+  }
+}
+
+/* =================== SEÇÕES =================== */
+.section {
+  position: relative;
+  padding: 120px 0;
+}
+
+.section-rose {
+  background: linear-gradient(180deg, var(--rose-50), #fff);
+}
+
+.section-head {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+.section-head.center {
+  max-width: 920px;
+  text-align: center;
+  margin-inline: auto;
+}
+
+.section-head h2 {
+  font-size: clamp(32px, 4vw, 52px);
+  margin-top: 14px;
+}
+
+.section-head p {
+  margin-top: 16px;
+  font-size: 18px;
+  color: var(--ink-500);
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 80px 0;
+  }
+  .section-head {
+    margin-bottom: 36px;
+  }
+  .section-head p {
+    font-size: 16px;
+  }
+}
+
+/* Nome da marca por extenso */
+.acronym-full {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: var(--ink-700);
+  line-height: 1.4;
+}
+
+.acronym-full b {
+  color: var(--wine-600);
+  font-weight: 650;
+}
+
+/* Faixa de variedades (página inicial) */
+.grape-rail {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grape-mini {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.4s var(--ease);
+}
+
+.grape-mini:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.grape-mini .scene {
+  border-radius: 0;
+  aspect-ratio: 1 / 1;
+  transition: transform 0.6s var(--ease);
+}
+
+.grape-mini:hover .scene {
+  transform: scale(1.05);
+}
+
+.grape-mini-media {
+  overflow: hidden;
+}
+
+.grape-mini div.txt {
+  padding: 14px 16px 16px;
+}
+
+.grape-mini strong {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-900);
+}
+
+.grape-mini span {
+  font-size: 12.5px;
+  color: var(--ink-500);
+}
+
+@media (max-width: 1100px) {
+  .grape-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grape-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Cartões da faixa com a mesma altura, mesmo quando a cor ocupa duas linhas. */
+.grape-rail > * {
+  display: flex;
+}
+
+.grape-mini {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.grape-mini div.txt {
+  flex: 1;
+}
+
+/* Cartões estreitos: o crédito quebra a linha em vez de cortar a licença. */
+.grape-mini .photo-credit {
+  right: 6px;
+  bottom: 6px;
+  max-width: calc(100% - 12px);
+  padding: 2px 6px;
+  font-size: 10px;
+  white-space: normal;
+}
+
+.home-hero-frame .photo {
+  border-radius: 20px;
+}
