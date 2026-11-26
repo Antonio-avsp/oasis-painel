@@ -1,0 +1,172 @@
+import { BrainCircuit, ClipboardList, Palette, Ruler } from 'lucide-react';
+import type { AnalysisComponent, AnalysisModel, ModelCard, ModelMetrics, VarietyModel } from '../../data/types';
+import { DETECTOR_LABEL } from '../../lib/analysis';
+import { formatPct } from '../../lib/format';
+
+const KIND_TITLE = {
+  cacho: 'Localizado pelo modelo',
+  variedade: 'Variedades (cacho)',
+  anomalia_leve: 'Anomalias leves',
+  anomalia_grave: 'Anomalias graves',
+} as const;
+const SOURCE_TITLE = { modelo: 'modelo treinado', analise_cor: 'regra de cor' } as const;
+const METRIC_ROWS: [keyof ModelMetrics, string][] = [
+  ['precision', 'Precisão'],
+  ['recall', 'Recall'],
+  ['f1', 'F1'],
+  ['map50', 'mAP50'],
+  ['map5095', 'mAP50-95'],
+];
+const decimal = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const COMPONENT_ICON = { modelo: BrainCircuit, cadastro: ClipboardList, regra: Palette };
+
+function Components({ items }: { items: AnalysisComponent[] }) {
+  return (
+    <ul className="model-components">
+      {items.map((c) => {
+        const Icon = COMPONENT_ICON[c.kind];
+        return (
+          <li key={c.item}>
+            <Icon aria-hidden="true" />
+            <span>
+              <strong>{c.item}</strong>
+              <small>{c.source}</small>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function CardSummary({ card }: { card: ModelCard }) {
+  const total = card.dataset.images.total ?? 0;
+  const clusters = card.dataset.instances.total ?? 0;
+  return (
+    <div className="model-card">
+      <div className="field-label">
+        <Ruler aria-hidden="true" /> Treinamento e desempenho medido
+      </div>
+      <p>
+        {card.architecture} treinado {card.pretrained ? 'por transfer learning' : 'do zero'} com <strong>{total} fotos reais</strong> ({clusters.toLocaleString('pt-BR')} cachos
+        anotados) do{' '}
+        <a href={card.dataset.sourceUrl} target="_blank" rel="noreferrer" className="link">
+          {card.dataset.name}
+        </a>{' '}
+        — {card.dataset.institution}. {card.dataset.capture}. Variedades: {card.dataset.varieties.join(', ')}.
+      </p>
+      {card.metrics.length > 0 && (
+        <div className="table-wrap">
+          <table className="table model-metrics">
+            <caption className="sr-only">Métricas do modelo por conjunto de imagens</caption>
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                {card.metrics.map((m) => (
+                  <th key={m.split} className="num">
+                    {m.split} <small>({m.images} fotos)</small>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {METRIC_ROWS.map(([key, label]) => (
+                <tr key={key}>
+                  <td>{label}</td>
+                  {card.metrics.map((m) => (
+                    <td key={m.split} className="num">
+                      {formatPct(m[key] as number)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="muted small">
+        Precisão, recall e F1 no limiar de confiança {card.metrics[0] ? decimal(card.metrics[0].confidence) : '—'} (IoU 0,5), medidos com o mesmo código de inferência da API em imagens que
+        não foram usadas no treino. {card.inferenceMsCpu ? `Inferência em CPU: cerca de ${Math.round(card.inferenceMsCpu)} ms por foto.` : ''} {card.license}
+      </p>
+    </div>
+  );
+}
+
+function VarietySummary({ model }: { model: VarietyModel }) {
+  return (
+    <div className="model-card">
+      <div className="field-label">
+        <Ruler aria-hidden="true" /> Variedades · {model.name} {model.version} ({model.architecture})
+      </div>
+      <div className="class-chips">
+        {model.classes.map((c) => (
+          <span key={c.name} className="class-chip variedade" title={c.name}>
+            {c.label}
+            {!c.inCatalog && <em> · fora do catálogo</em>}
+          </span>
+        ))}
+      </div>
+      <p>
+        No teste, que o modelo não viu no treino, acertou a variedade de{' '}
+        <strong>{model.photoAccuracy != null ? formatPct(model.photoAccuracy) : '—'}</strong> das fotos ({model.testPhotos ?? '—'} fotos, votando entre os cachos
+        detectados) e {model.accuracy != null ? formatPct(model.accuracy) : '—'} dos cachos individuais (acurácia balanceada{' '}
+        {model.balancedAccuracy != null ? formatPct(model.balancedAccuracy) : '—'}).
+      </p>
+      {Object.keys(model.perClassRecall).length > 0 && (
+        <p className="muted small">
+          Acerto por variedade (cachos):{' '}
+          {model.classes.map((c) => `${c.label} ${formatPct(model.perClassRecall[c.name] ?? 0)}`).join(' · ')}. Dados: {model.dataset}. {model.license}
+        </p>
+      )}
+      <ul className="bullets">
+        {model.limitations.map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** O que o detector em uso consegue identificar — somente o que a API informa — e de onde vem cada parte do resultado. */
+export function ModelInfo({ model }: { model: AnalysisModel }) {
+  const Icon = model.yoloLoaded ? BrainCircuit : Palette;
+  const groups = (Object.keys(KIND_TITLE) as (keyof typeof KIND_TITLE)[])
+    .map((k) => ({ kind: k, items: model.classes.filter((c) => c.kind === k) }))
+    .filter((g) => g.items.length);
+  const title = model.card ? `${model.card.name} ${model.card.version}` : (DETECTOR_LABEL[model.detector] ?? model.detector);
+  return (
+    <details className="model-info">
+      <summary>
+        <Icon aria-hidden="true" />
+        <span>
+          Detector em uso: <strong>{title}</strong>
+          <small className="mono">{model.version}</small>
+        </span>
+      </summary>
+      <div className="model-info-body">
+        <p>{model.description}</p>
+        {model.components.length > 0 && <Components items={model.components} />}
+        {model.card && <CardSummary card={model.card} />}
+        {model.varietyModel && <VarietySummary model={model.varietyModel} />}
+        {groups.map((g) => (
+          <div key={g.kind}>
+            <div className="field-label">{KIND_TITLE[g.kind]}</div>
+            <div className="class-chips">
+              {g.items.map((c) => (
+                <span key={c.name} className={`class-chip ${g.kind}`} title={`${c.name} · ${SOURCE_TITLE[c.source]}`}>
+                  {c.label}
+                  {g.kind !== 'cacho' && c.source === 'analise_cor' && <em> · regra de cor</em>}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+        <ul className="bullets">
+          {model.limitations.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+      </div>
+    </details>
+  );
+}
